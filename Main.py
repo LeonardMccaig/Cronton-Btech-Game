@@ -1,8 +1,7 @@
 import pygame
 import time
 import math
-print("jello world")
-
+print("hello patrick")
 
 # font 
 pygame.font.init()
