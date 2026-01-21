@@ -1,6 +1,7 @@
 import pygame
 import time
 import math
+print("jello world")
 
 
 # font 
