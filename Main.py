@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 
-Warning("Game Version : 0.5 ")
+Warning("Game Version : 0.7")
 
 
 pygame.init()
@@ -323,7 +323,7 @@ while running:
                         player_name = name_input.strip()
                         print(f"name: {player_name}")
                         load_level(current_level)
-                        start_fade("playing")
+                    
                 elif event.key == pygame.K_BACKSPACE:
                     name_input = name_input[:-1]
                 elif len(name_input) < 12:
