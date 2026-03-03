@@ -1,0 +1,7 @@
+Version 0.5: 
+ > refactored all code ( re-orginised it )
+ > implimented level design  using a text based system 
+ > basic enemy functionality ( movement and killing)
+ > enemy's have customiseable properties (speed, axis ect)
+ > level system working easy to add more just by adding to the list
+ > small changes and bug fixes :)
