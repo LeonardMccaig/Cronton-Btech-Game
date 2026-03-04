@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 
-Warning("Game Version : 0.91")
+Warning("Game Version : 0.9")
 
 
 pygame.init()
@@ -26,7 +26,7 @@ def open_save():
 
 # settings
 
-debug_mode = True
+debug_mode = False
 god_mode = False
 
 screen_width, screen_height = 1000, 600
@@ -386,12 +386,12 @@ while running:
             nickname_image = enter_nickname_image
         else:
             nickname_image = entering_nickname_image
-        screen.blit(nickname_image, nickname_image.get_rect(center=(screen_width // 2, 200)))
+        screen.blit(nickname_image, nickname_image.get_rect(center=(screen_width // 2, 300)))
 
         # typed text + blinking cursor, centred where the box was
         
         input_surf = font_mid.render(name_input, True, BLUE)
-        screen.blit(input_surf, input_surf.get_rect(center=(screen_width // 2, (screen_height // 2)  - 100 ) ))
+        screen.blit(input_surf, input_surf.get_rect(center=(screen_width // 2, (screen_height // 2)   ) ))
 
 
     elif scene == "playing":
