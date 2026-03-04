@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 
-Warning("Game Version : 0.7")
+Warning("Game Version : 0.9")
 
 
 pygame.init()
@@ -47,6 +47,7 @@ GREEN      = (80, 255, 120)
 GREY       = (230, 230, 250)
 DARK       = (40, 40, 80)
 BG_COLOR   = (15, 15, 35)
+YELLOW = (255, 255, 0)
 
 colours = [WHITE,BLACK,BLUE,GREEN]
 
@@ -59,36 +60,38 @@ levels = [
     [
         "#########################",
         "#########################",
-        "#########################",
         "-------------------------",
+        ".........................",
         ".........................",
         ".........................",
         ".........................",
         ".P......................E",
         ".........................",
         ".........................",
-        ".....Y....Y...Y...Y......",
+        ".....Y....Y....Y..Y......",
+        ".........................",
         "-------------------------",
-        "#########################",
         "#########################",
         "#########################"
     ],
 
-    [   "#########################",
-        "#P......................#",
-        "#.......................#",
-        "#.....##................#",
-        "#................@......#",
-        "#.......................#",
-        "#.......................#",
-        "#.......................#",
-        "#.......................#",
-        "#.......................#",
-        "#.......................#",
-        "#.......................#",
-        "#.......................#",
-        "#......................E#",
-        "########################"]
+    [
+        "#########################",
+        "#########################",
+        "-------------------------",
+        ".........................",
+        ".........................",
+        ".........................",
+        ".........................",
+        ".P......................E",
+        ".........................",
+        ".........................",
+        "......Y.....Y.....Y......",
+        ".........................",
+        "-------------------------",
+        "#########################",
+        "#########################"
+    ],
 
 ]
 
@@ -122,6 +125,9 @@ def start_fade(next_scene):
     fading_in  = False
     fade_next  = next_scene
     fade_alpha = 0
+    done = True
+    return done 
+
 
 
 # level functions
@@ -180,6 +186,17 @@ def load_level(index):
                     "axis"  : "y",
                     "moves" : True,
                     "colour": RED
+                })
+            elif char == "S":
+                enemies.append({
+                    "speed" : 12,
+                    "x"     : pos_x,
+                    "y"     : pos_y,
+                    "start_x": pos_x,
+                    "dir"   : 1,
+                    "axis"  : "y",
+                    "moves" : True,
+                    "colour": YELLOW
                 })
 
             elif char == "@":
@@ -323,10 +340,11 @@ while running:
                         player_name = name_input.strip()
                         print(f"name: {player_name}")
                         load_level(current_level)
+                        start_fade("playing")
                     
                 elif event.key == pygame.K_BACKSPACE:
                     name_input = name_input[:-1]
-                elif len(name_input) < 12:
+                elif len(name_input) < 15:
                     name_input += event.unicode
 
     # draw scenes
@@ -391,6 +409,8 @@ while running:
         move_enemies()
 
         if touching_enemy() and god_mode != "Y":
+    
+            
             death_count += 1
             scene = "dead"
 
@@ -400,7 +420,6 @@ while running:
                 scene = "complete"
             else:
                 load_level(current_level)
-                start_fade("playing")
                 print("next level")
 
         screen.fill(BG_COLOR)
@@ -428,12 +447,20 @@ while running:
         pygame.draw.rect(screen, BLUE, (player_x, player_y, tile_size, tile_size))
 
         if player_name:
-            name_surf = font_small.render(player_name, True, WHITE)
+            name_surf = font_mid.render(player_name, True, WHITE)
             screen.blit(name_surf, (10, 10))
 
+
+            death_suff = font_mid.render(f"Deaths:", True, WHITE)
+            death_suff_counter = font_mid.render(str(death_count), True, RED)
+
+            screen.blit(death_suff, (800, 10))
+            screen.blit(death_suff_counter, (935, 12))
+
         if scene == "dead":
+            fade_speed = 11 
+            start_fade("playing")
             print("dead")
-            scene    = "playing"
             player_x = spawn_x
             player_y = spawn_y
 
