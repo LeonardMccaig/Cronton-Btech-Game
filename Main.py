@@ -2,14 +2,14 @@ import pygame
 import math
 import random
 
-Warning("Game Version : 0.9")
+Warning("Game Version : 0.91")
 
 
 pygame.init()
 
 font = pygame.font.Font(None, 80)
 
-
+player_size_dif = 5
 # funcs
 
 def PlayLauncher(current_scene):
@@ -26,7 +26,7 @@ def open_save():
 
 # settings
 
-debug_mode = False
+debug_mode = True
 god_mode = False
 
 screen_width, screen_height = 1000, 600
@@ -68,26 +68,26 @@ levels = [
         ".P......................E",
         ".........................",
         ".........................",
-        ".....Y....Y....Y..Y......",
+        ".....Y....Y....Y....Y....",
         ".........................",
         "-------------------------",
         "#########################",
         "#########################"
     ],
 
-    [
+     [
         "#########################",
         "#########################",
         "-------------------------",
-        ".........................",
-        ".........................",
-        ".........................",
-        ".........................",
-        ".P......................E",
-        ".........................",
-        ".........................",
-        "......Y.....Y.....Y......",
-        ".........................",
+        "-............P..........-.",
+        "-.......................-.",
+        "-X..........#..@@..@@...-",
+        "-...........#...........-",
+        "-..X........#.@.@.@.@.@.-",
+        "-...........#...........-",
+        "-X..........#...........-",
+        "-...........#...@@@@@...-",
+        "-...........E...........-",
         "-------------------------",
         "#########################",
         "#########################"
@@ -194,7 +194,7 @@ def load_level(index):
                     "y"     : pos_y,
                     "start_x": pos_x,
                     "dir"   : 1,
-                    "axis"  : "y",
+                    "axis"  : "x",
                     "moves" : True,
                     "colour": YELLOW
                 })
@@ -206,7 +206,7 @@ def load_level(index):
                     "start_x": pos_x,
                     "dir"   : 0,
                     "moves" : False,
-                    "colour": BLUE
+                    "colour": RED
                 })
 
 
@@ -214,14 +214,14 @@ def move_player(move_x, move_y):
     global player_x, player_y
 
     player_x += move_x
-    player_rect = pygame.Rect(player_x, player_y, tile_size, tile_size)
+    player_rect = pygame.Rect(player_x, player_y, tile_size- player_size_dif, tile_size - player_size_dif)
     for wall in walls:
         if player_rect.colliderect(wall):
             if move_x > 0: player_x = wall.left - tile_size
             if move_x < 0: player_x = wall.right
 
     player_y += move_y
-    player_rect = pygame.Rect(player_x, player_y, tile_size, tile_size)
+    player_rect = pygame.Rect(player_x, player_y, tile_size - player_size_dif, tile_size - player_size_dif)
     for wall in walls:
         if player_rect.colliderect(wall):
             if move_y > 0: player_y = wall.top - tile_size
@@ -254,8 +254,8 @@ def move_enemies():
 
 
 def touching_enemy():
-    player_rect = pygame.Rect(player_x, player_y, tile_size, tile_size)
-    for enemy in enemies:
+    player_rect = pygame.Rect(player_x, player_y, tile_size - player_size_dif, tile_size - player_size_dif)
+    for enemy in enemies:   
         if player_rect.colliderect(pygame.Rect(enemy["x"], enemy["y"], tile_size, tile_size)):
             print("hit enemy")
             return True
@@ -263,7 +263,7 @@ def touching_enemy():
 
 
 def touching_exit():
-    player_rect = pygame.Rect(player_x, player_y, tile_size, tile_size)
+    player_rect = pygame.Rect(player_x, player_y, tile_size - player_size_dif, tile_size - player_size_dif)
     if exit_rect and player_rect.colliderect(exit_rect):
         print("hit exit")
         return True
@@ -444,7 +444,7 @@ while running:
         for enemy in enemies:
             pygame.draw.rect(screen, enemy["colour"], (enemy["x"], enemy["y"], tile_size, tile_size))
 
-        pygame.draw.rect(screen, BLUE, (player_x, player_y, tile_size, tile_size))
+        pygame.draw.rect(screen, BLUE, (player_x, player_y, tile_size - player_size_dif, tile_size - player_size_dif))
 
         if player_name:
             name_surf = font_mid.render(player_name, True, WHITE)
