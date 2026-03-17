@@ -92,6 +92,23 @@ levels = [
         "#########################",
         "#########################"
     ],
+    [
+        "#########################",
+        "#########################",
+        "-------------------------",
+        "-............P..........-.",
+        "-.......................-.",
+        "-.......................-",
+        "-............E..........-",
+        "-.......................-",
+        "-.......................-",
+        "-.......................-",
+        "-.......................-",
+        "-.......................-",
+        "-------------------------",
+        "#########################",
+        "#########################"
+    ],
 
 ]
 
@@ -103,6 +120,10 @@ bg_scroll = 0
 current_level = 0
 scene = "menu"  # menu, name_entry, playing, dead, win, complete
 death_count = 0
+run_timer = 0
+timer_running = False
+timer_start = 0
+exit_triggered = False
 
 player_x = 0
 player_y = 0
@@ -133,11 +154,12 @@ def start_fade(next_scene):
 # level functions
 
 def load_level(index):
-    global player_x, player_y, enemies, walls, exit_rect
+    global player_x, player_y, enemies, walls, exit_rect, exit_triggered
 
     walls   = []
     enemies = []
     exit_rect = None
+    exit_triggered = False
 
     rows = levels[index]
     print(f"loading level {index + 1}")
@@ -288,6 +310,12 @@ bg_image    = pygame.image.load("Assets/BG.png").convert()
 title_image = pygame.image.load("Assets/Title.png")
 play_image  = pygame.image.load("Assets/Play.png")
 play_hover  = pygame.image.load("Assets/Play_hover.png")
+exit_image  = pygame.image.load("Assets/Exit.png") 
+exit_btn_rect = exit_image.get_rect(topleft=(10, 10))
+leaderboard_image = pygame.image.load("Assets/Leaderboard.png")
+leaderboard_hover = pygame.image.load("Assets/Leaderboard_hover.png")
+leaderboard_btn_rect = leaderboard_image.get_rect(topleft=(10, 60))
+
 
 # name entry screen images
 enter_nickname_image    = pygame.image.load("Assets/Enter_Nickname.png")
@@ -332,6 +360,9 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN and can_input:
             if scene == "menu" and play_rect.collidepoint(mouse_pos):
                 start_fade("name_entry")
+            if scene == "name_entry" and exit_btn_rect.collidepoint(mouse_pos):
+                print("clicked exit")
+                start_fade("menu")
 
         elif event.type == pygame.KEYDOWN and can_input:
             if scene == "name_entry":
@@ -340,8 +371,9 @@ while running:
                         player_name = name_input.strip()
                         print(f"name: {player_name}")
                         load_level(current_level)
+                        timer_start = pygame.time.get_ticks()
+                        timer_running = True
                         start_fade("playing")
-                    
                 elif event.key == pygame.K_BACKSPACE:
                     name_input = name_input[:-1]
                 elif len(name_input) < 15:
@@ -351,14 +383,21 @@ while running:
 
     if scene == "menu":
 
-        if play_rect.collidepoint(mouse_pos) and not btn_hovered:
-            btn_hovered = True
+        # hover detection (simple + reliable)
+        play_hovered = play_rect.collidepoint(mouse_pos)
+        leaderboard_hovered = leaderboard_btn_rect.collidepoint(mouse_pos)
+
+        # debug prints (optional)
+        if play_hovered:
             print("hovered play")
-        if not play_rect.collidepoint(mouse_pos):
-            btn_hovered = False
+        if leaderboard_hovered:
+            print("hovered leaderboard")
 
-        play_current = play_hover if btn_hovered else play_image
+        # choose images
+        play_current = play_hover if play_hovered else play_image
+        leaderboard_current = leaderboard_hover if leaderboard_hovered else leaderboard_image
 
+        # scrolling background
         bg_scroll -= scroll_speed
         if abs(bg_scroll) > bg_width:
             bg_scroll = 0
@@ -366,8 +405,10 @@ while running:
         for i in range(bg_tiles):
             screen.blit(bg_image, (i * bg_width + bg_scroll, 0))
 
+        # draw UI
         screen.blit(title_image, (170, 50))
         screen.blit(play_current, (330, 220))
+        screen.blit(leaderboard_current, (320, 350))
 
     elif scene == "name_entry":
 
@@ -386,12 +427,38 @@ while running:
             nickname_image = enter_nickname_image
         else:
             nickname_image = entering_nickname_image
+
         screen.blit(nickname_image, nickname_image.get_rect(center=(screen_width // 2, 300)))
+        screen.blit(exit_image, (10, 10))
+
+
 
         # typed text + blinking cursor, centred where the box was
         
         input_surf = font_mid.render(name_input, True, BLUE)
         screen.blit(input_surf, input_surf.get_rect(center=(screen_width // 2, (screen_height // 2)   ) ))
+
+    elif scene == "complete":
+
+        bg_scroll -= scroll_speed
+        if abs(bg_scroll) > bg_width:
+            bg_scroll = 0
+        for i in range(bg_tiles):
+            screen.blit(bg_image, (i * bg_width + bg_scroll, 0))
+
+        dim = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        dim.fill((0, 0, 0, 160))
+        screen.blit(dim, (0, 0))
+
+        title_surf = font_big.render("You Win!", True, GREEN)
+        name_surf  = font_mid.render(f"{player_name}", True, WHITE)
+        time_surf  = font_mid.render(f"Time:    {run_timer:.1f}s", True, WHITE)
+        death_surf = font_mid.render(f"Deaths:  {death_count}", True, RED)
+
+        screen.blit(title_surf, title_surf.get_rect(center=(screen_width // 2, screen_height // 2 - 120)))
+        screen.blit(name_surf,  name_surf.get_rect(center=(screen_width // 2, screen_height // 2 - 30)))
+        screen.blit(time_surf,  time_surf.get_rect(center=(screen_width // 2, screen_height // 2 + 30)))
+        screen.blit(death_surf, death_surf.get_rect(center=(screen_width // 2, screen_height // 2 + 80)))
 
 
     elif scene == "playing":
@@ -414,10 +481,13 @@ while running:
             death_count += 1
             scene = "dead"
 
-        if touching_exit():
+        if touching_exit() and not exit_triggered:
+            exit_triggered = True
             current_level += 1
             if current_level >= len(levels):
-                scene = "complete"
+                run_timer = (pygame.time.get_ticks() - timer_start) / 1000
+                timer_running = False
+                start_fade("complete")
             else:
                 load_level(current_level)
                 print("next level")
@@ -457,6 +527,11 @@ while running:
             screen.blit(death_suff, (800, 10))
             screen.blit(death_suff_counter, (935, 12))
 
+            if timer_running:
+                elapsed = (pygame.time.get_ticks() - timer_start) / 1000
+                timer_surf = font_mid.render(f"{elapsed:.1f}s", True, WHITE)
+                screen.blit(timer_surf, timer_surf.get_rect(center=(screen_width // 2, 15)))
+
         if scene == "dead":
             fade_speed = 11 
             start_fade("playing")
@@ -466,8 +541,6 @@ while running:
 
         if scene == "win":
             print("win")
-        if scene == "complete":
-            print("complete")
 
     # fade overlay on top of everything
     if fading_out:
